@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homepage</title>
+<link rel="stylesheet" href="homepage.css">
+</head>
+
+<body>
+	<div class="container">
+		<!-- Placeholder for the welcome message with the account holder's name -->
+		    <h1>Welcome  <span id="account-holder-name">SIDDARTH </span>!</h1>
+
+
+		<div class="actions">
+			<div class="action-item">
+				<h3>Amount Deposit</h3>
+				<button onclick="goToDepositPage()">Deposit</button>
+			</div>
+			<div class="action-item">
+				<h3>Amount Withdrawal</h3>
+				<button onclick="withdrawAmount()">Withdraw</button>
+			</div>
+			<div class="action-item">
+				<h3>Check Balance</h3>
+				<button onclick="checkBalance()">Check Balance</button>
+			</div>
+			<div class="action-item">
+				<h3>Exit</h3>
+				<button onclick="goToLoginPage()">Exit</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+   
+
+        // JavaScript functions for button actions
+       function goToDepositPage() {
+    // Prompt the user to enter the amount they want to deposit
+    const depositAmountString = prompt('Enter the amount you want to deposit:');
+    
+    // Convert the input to a number using parseFloat
+    const depositAmount = parseFloat(depositAmountString);
+    
+    // Validate the deposit amount (must be a number)
+    if (isNaN(depositAmount)) {
+        alert('Invalid amount entered. Please enter a valid number.');
+        //return;
+    }
+
+    // Send a POST request to the server to update the balance with the deposit amount
+    fetch('Deposit', { // Replace '/Deposit' with the correct server endpoint URL
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            amount: depositAmount
+        })
+    })
+    
+    .then(response => {
+    	
+        // Check if the response status is successful
+        if (!response.ok) {
+        	
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+        // Parse the response as JSON
+        return response.json();
+    })
+    .then(data => {
+        // Check if the deposit was successful
+        if (data.success) {
+            // Display an alert with the updated balance
+            alert(`Deposit successful! Your new balance is $${data.newBalance.toFixed(2)}`);
+        } else {
+            // Handle an unsuccessful deposit
+            alert('Deposit failed. Please try again later.');
+        }
+    })
+    .catch(error => {
+        // Handle any errors that occur during the deposit request
+        console.error('Error processing deposit:', error);
+        alert('Error processing deposit. Please try again later.');
+    });
+}
+
+        
+        
+        
+        
+
+        function withdrawAmount() {
+        	console.log('Performing withdrawal...');
+            // Prompt the user to enter the amount they want to withdraw
+            const withdrawalAmountString = prompt('Enter the amount you want to withdraw:');
+            
+            // Convert the input to a number using parseFloat
+            const withdrawalAmount = parseFloat(withdrawalAmountString);
+            
+            // Validate the withdrawal amount (must be a number)
+            if (isNaN(withdrawalAmount)) {
+                alert('Invalid amount entered. Please enter a valid number.');
+                return;
+            }
+
+            // Fetch the current balance asynchronously
+           fetch(`ChechBalance`)
+                     .then(response => {
+        // Check for a successful response (status 200-299)
+             if (!response.ok) {
+             throw new Error(`HTTP error: ${response.status}`);
+            }
+        // Parse the response as JSON
+            return response.json();
+          })
+    .then(data => {
+        const currentBalance = data.balance;
+
+        // Check the withdrawal amount
+        if (withdrawalAmount <= 0) {
+            alert('Invalid amount entered. Please enter an amount greater than zero.');
+        } else if (withdrawalAmount > currentBalance) {
+            alert('Insufficient balance. Please enter a lesser amount.');
+        } else {
+            // If withdrawal amount is valid, proceed with the withdrawal
+            console.log('Calling performWithdrawal:', withdrawalAmount, currentBalance);
+            performWithdrawal(withdrawalAmount, currentBalance);
+        }
+    })
+               .catch(error => {
+                    // Handle any errors that occur during the balance fetch
+                   console.error('Error fetching balance:', error);
+                    alert('Error fetching balance. Please try again later.');
+                });
+        }
+
+        function performWithdrawal(withdrawalAmount, currentBalance) {
+            // Deduct the withdrawal amount from the current balance
+            const newBalance = currentBalance - withdrawalAmount;
+
+            console.log('Performing withdrawal...');
+            console.log('performing fuction getting called');
+            // Send a POST request to the server to update the balance
+           fetch('Withdraw', {
+                 method: 'POST',
+                 headers: {
+                                'Content-Type': 'application/json'
+                             },
+                  body: JSON.stringify({
+                           amount: withdrawalAmount
+                             })
+                 })
+          .then(response => {
+                if (response.ok) {
+                	   console.log('response is not ok');
+                   // console.error('Server responded with a non-200 status:', response.statusText);
+                    alert('An error occurred while processing your withdrawal. Please try again later.');
+                    return response.json();
+                }
+                return response.json();
+            }) 
+            .then(data => {
+                if (!data.success) {
+                	console.log('response is  ok');
+                    alert(`Withdrawal successful. Your new balance is: ${data.newBalance.toFixed(2)}`);
+                } else {
+                	console.log('response is not ok in data suceess');
+                    //console.error('Server response data does not contain success flag:', data);
+                    alert('An error occurred while processing your withdrawal. Please try again later.');
+                }
+            })
+            .catch(error => {
+                // Handle any errors that occur during the withdrawal
+               // console.error('Error processing withdrawal:', error);
+                alert('An error occurred while processing your withdrawal. Please try again later.');
+            });
+        }
+
+        function checkBalance() {
+            // Fetch the user's email from session storage or local storage
+            //const email = sessionStorage.getItem('userEmail'); // Adjust to match how you store the email
+
+            // Make a request to the server-side endpoint to fetch the balance
+            fetch(`ChechBalance`)
+                .then(response => response.json())
+                .then(data => {
+                    // Display the balance in an alert
+                    alert(`Your current balance is $${data.balance}`);
+                })
+                .catch(error => {
+                    console.error('Error fetching balance:', error);
+                });
+        }
+
+        function goToLoginPage() {
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
